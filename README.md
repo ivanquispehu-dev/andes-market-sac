@@ -29,6 +29,7 @@ Servidores disponibles en la fase 1:
 | lim-web-01 | Tienda WordPress + WooCommerce | 10.10.10.11 / 10.10.20.11 | wordpress:php8.3-apache |
 | lim-web-02 | Segundo nodo de la tienda | 10.10.10.12 / 10.10.20.12 | wordpress:php8.3-apache |
 | lim-db-02 | MySQL de la tienda | 10.10.20.22 | mysql:8.4 |
+| lim-dc-01 | Samba AD: dominio ANDESMARKET.LOCAL, cuentas de TI | 10.10.20.41 | construida desde `config/samba` (Debian 13) |
 
 ## Puesta en marcha (fase 1)
 
@@ -74,6 +75,10 @@ Después, en PowerShell, `wsl --shutdown` y vuelve a abrir Debian.
 datos/instalar-tienda.sh
 ```
 
+La primera vez, `lab.sh` construye la imagen de lim-dc-01 a partir de Debian 13
+y crea el dominio con los 11 empleados de TI de `config/samba/usuarios.csv`.
+Tarda unos minutos.
+
 Abre https://localhost:8443. El navegador avisará que el certificado no es de
 confianza: es autofirmado, acéptalo. El usuario y la clave del panel
 (`/wp-admin`) están en el archivo `.env`.
@@ -87,6 +92,8 @@ confianza: es autofirmado, acéptalo. El usuario y la clave del panel
 | `docker exec -it lim-db-02 mysql -uroot -p` | Entrar a MySQL |
 | `docker exec -it lim-web-01 bash` | Entrar a un servidor |
 | `./lab.sh wp plugin list` | Administrar WordPress con wp-cli |
+| `docker exec lim-dc-01 samba-tool user list` | Ver las cuentas del dominio |
+| `docker exec -it lim-dc-01 samba-tool user create <usuario>` | Crear una cuenta |
 | `./lab.sh detener` | Apagar todo (los datos se conservan) |
 
 ## Cómo se trabaja
@@ -107,9 +114,10 @@ hiciste. Si el arreglo cambia producción, primero pides aprobación con
 | `compose/fase1.yml` | Redes y servidores de la fase 1 |
 | `config/nginx/` | Sitio HTTPS de la tienda y script del certificado |
 | `config/mysql/` | Configuración de lim-db-02 |
+| `config/samba/` | Imagen de lim-dc-01, creación del dominio y lista de empleados |
 | `datos/instalar-tienda.sh` | WordPress, WooCommerce y productos de ejemplo |
 | `procesos/` | Plantillas de ticket, cambio y postmortem; runbooks |
 
-Próximas entregas: Samba AD (cierra la fase 1), luego fase 2 (ERP Odoo,
+Próximas entregas: fase 2 (ERP Odoo,
 almacén, réplica y respaldos), fase 3 (monitoreo, tickets en GLPI, fallas
 simuladas) y fase 4 (Windows Server y pfSense).

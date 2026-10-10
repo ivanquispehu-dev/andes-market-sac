@@ -19,6 +19,8 @@ networks:
 volumes:
   tienda-html:
   tienda-db:
+  dc-datos:
+  dc-config:
 
 services:
   lim-lb-01:
@@ -109,6 +111,34 @@ services:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
       interval: 5s
       retries: 30
+
+  lim-dc-01:
+    build: ../config/samba
+    image: andesmarket/samba-ad:1
+    container_name: lim-dc-01
+    hostname: lim-dc-01
+    domainname: andesmarket.local
+    restart: unless-stopped
+    # Samba guarda permisos de Windows en atributos extendidos del disco;
+    # escribirlos necesita esta capacidad del kernel.
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      SAMBA_ADMIN_PASSWORD: ${SAMBA_ADMIN_PASSWORD}
+      SAMBA_USERS_PASSWORD: ${SAMBA_USERS_PASSWORD}
+    volumes:
+      - dc-datos:/var/lib/samba
+      - dc-config:/etc/samba
+      - ../config/samba/usuarios.csv:/config/usuarios.csv:ro
+    networks:
+      servidores:
+        ipv4_address: 10.10.20.41
+    healthcheck:
+      # sano cuando escuchan LDAP (389) y SMB (445)
+      test: ["CMD-SHELL", "ss -ltn | grep -q ':389 ' && ss -ltn | grep -q ':445 '"]
+      interval: 10s
+      start_period: 60s
+      retries: 12
 
   # Herramienta de administracion de WordPress. Solo corre cuando se la llama:
   #   ./lab.sh wp plugin list
