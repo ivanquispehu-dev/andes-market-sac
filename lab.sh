@@ -28,12 +28,20 @@ compose() {
 preparar_env() {
   if [[ ! -f .env ]]; then
     echo "Creando .env con contrasenas aleatorias..."
-    cp .env.example .env
-    for var in MYSQL_ROOT_PASSWORD TIENDA_DB_PASSWORD WP_ADMIN_PASSWORD; do
-      sed -i "s|^$var=.*|$var=$(openssl rand -hex 16)|" .env
-    done
+    touch .env
     chmod 600 .env
   fi
+  # Agrega a .env las variables nuevas de .env.example, con claves aleatorias
+  while IFS='=' read -r var valor; do
+    [[ -z "$var" || "$var" == \#* ]] && continue
+    grep -q "^$var=" .env && continue
+    case "$var" in
+      SAMBA_*_PASSWORD) valor="Andes-$(openssl rand -hex 6)-9x!" ;;
+      *_PASSWORD)       valor="$(openssl rand -hex 16)" ;;
+    esac
+    echo "$var=$valor" >> .env
+    echo "  + $var agregada a .env"
+  done < .env.example
 }
 
 preparar_certificado() {
