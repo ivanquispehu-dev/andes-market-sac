@@ -1,0 +1,14 @@
+# Configuracion de lim-db-02 (MySQL de la tienda)
+[mysqld]
+character-set-server = utf8mb4
+collation-server     = utf8mb4_unicode_ci
+
+# Registro de consultas lentas: util para tickets de rendimiento
+slow_query_log       = 1
+slow_query_log_file  = /var/lib/mysql/lim-db-02-slow.log
+long_query_time      = 1
+
+# Binlog activo: necesario para replicacion y restauracion a un punto en el tiempo
+server-id            = 102
+log_bin              = lim-db-02-bin
+binlog_expire_logs_seconds = 604800
