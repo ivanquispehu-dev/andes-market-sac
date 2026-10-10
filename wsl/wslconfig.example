@@ -1,0 +1,8 @@
+# Copia este archivo a C:\Users\<tu-usuario>\.wslconfig  y luego, en PowerShell:
+#   wsl --shutdown
+# Limita la memoria de WSL 2 (incluye Docker Desktop) para que Windows no se quede sin RAM.
+
+[wsl2]
+memory=6GB
+processors=4
+swap=2GB
